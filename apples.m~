@@ -1,0 +1,38 @@
+function apples = apples(T,X,Tfinal,Ttransient ,prob,work,d)
+    Tn=length(T); 
+    u=zeros(d,1);
+    Bint=zeros(d,1);
+    for n=1:Tn-1
+        t=T(n); h=T(n+1)-T(n);
+        u(1:d)=X(n,1:d);
+        up=frhs(t,u,d,prob,work);
+        A=getA(t,u,up,d,prob,work) ;
+        Q=reshape(X(n,d+1:d+d*d),d,d);
+        QtAQ=Q'*A*Q;
+        S=zeros(d,d);
+        for i = 1:d
+            for j = 1:d
+                if i > j
+                    S(i,j) = QtAQ(i,j);
+                elseif i < j
+                    S(i,j) = -QtAQ(j,i);
+                else % i = j
+                    S(i,j) = 0;
+                end
+            end       
+        end
+        B=triu(QtAQ-S);
+        for j=1:d
+           Bint(j)=Bint(j)+h*B(j,j); 
+        end
+        if t > Ttransient
+            
+        end
+        
+   end       
+        
+    % B=QtAQ-Q'*Qdot;
+
+
+end
+

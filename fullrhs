@@ -1,0 +1,63 @@
+function rhs=fullrhs(x,t,d)
+    rhs(1:d)=frhs(x(1:d),t,d);
+    A=getA(x(1:d),t,d);
+    Q=reshape(x(d+1:d+d*d),d,d);
+    [Q,junk]=mgs(Q);
+    Qdot=getQdot(Q,A,d);
+    rhs(d+1:d+d*d)=reshape(Qdot,d*d,1);
+end
+
+function f=frhs(u,t,d)
+    f(1) = u(1)-u(2);
+    f(2) = u(1)+2*u(2);
+end
+
+function A = getA(u,t,d)
+    A=zeros(d,d);
+    f=frhs(t,u);
+     hinv=1e6; %sqrt(eps);
+     h=1e-6;
+     for i=1:d
+         for j=1:d
+             v=zeros(d,1);
+             v(j)=1;
+             df=frhs(t,u+v*h);
+             A(i,j)=(df(i)-f(i))*hinv;
+         end
+     end 
+end
+
+function Qdot = getQdot(Q,A,d)
+  S = zeros(d,d);
+  QtAQ = Q' * A * Q ;
+  % This double loop computes S(Q)
+  for i = 1:d
+    for j = 1:d
+        if i > j
+            S(i,j) = QtAQ(i,j);
+        elseif i < j
+            S(i,j) = -QtAQ(j,i);
+        else % i = j
+            S(i,j) = 0;
+        end       
+    end
+   end       
+   % Qdot is the RHS of the Q'(t) = ... equation
+   Qdot = Q*S; 
+ %  B=QtAQ-Q'*Qdot;
+end
+
+function [A,R] = mgs(A)
+%Performs modified Gram-Schmidt to find Q,R
+%such that A=QR.
+%A is over written with orthgonal matrix Q
+
+    [m, n] = size(A);
+    R = zeros(n,n);
+    for j= 1:n
+        R(j,j)=norm(A(:,j));
+        A(:,j)=A(:,j)/R(j,j);
+        R(j,j+1:n)=A(:,j)'*A(:,j+1:n);
+        A(:,j+1:n)=A(:,j+1:n)-A(:,j)*R(j,j+1:n);
+    end
+end

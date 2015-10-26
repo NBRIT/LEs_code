@@ -1,0 +1,62 @@
+% getQdot returns the matrix right hand side of the equation dQ/dt=Q*S
+%
+% Inputs: T, X, Ttransient, prob, work, d , p
+% T - vector of times
+% X - vector of solutions of u'=f(t,u) and Q'=S*Q
+% Ttransient - time at which the limsup approximation beings
+% prob - A scalar number that corresponds to the ODE being solved (used to change between different
+% problems
+% work - A vector of parameters of arbitrary size
+% H - the window length of the Steklov averages
+% d - The dimension of the problem
+% p - the number of LEs being approximated
+%
+% Outputs: stek
+% stek - p x 1 vector of Steklov averages
+function stek = applesfun(T,X,Ttransient ,prob,work,H,d,p)
+    Tn=length(T); 
+    u=zeros(d,1);
+    Bint=zeros(d,1); appules=zeros(p,1); applles=zeros(p,1);
+    [t_delta, t_ind] = min(abs(T-Ttransient));
+    t_ind=t_ind+1;
+    g=zeros(Tn-t_ind-1,d);
+    t=T(1); m =1;
+    while m < Tn
+        mprev=m;
+        tprev=T(m); tnew = T(m+1);
+        while tnew-tprev < H
+            m = m+1;
+            tnew=T(m);
+            tprev=T(m-1)
+        end
+        t=T(n); h=T(n+1)-T(n);
+        u(1:d)=X(n,1:d);
+        up=frhs(t,u,d,prob,work);
+        A=getA(t,u,up,d,prob,work) ;
+        Q=reshape(X(n,d+1:d+d*p),d,p);
+        QtAQ=Q'*A*Q;
+        S=zeros(p,p);
+        for i = 1:p
+            for j = 1:p
+                if i > j
+                    S(i,j) = QtAQ(i,j);
+                elseif i < j
+                    S(i,j) = -QtAQ(j,i);
+                else % i = j
+                    S(i,j) = 0;
+                end
+            end       
+        end
+        B=triu(QtAQ-S);
+        for j=1:p
+            Bint(j)=Bint(j)+h*B(j,j);
+            if n > t_ind             
+                g(n-t_ind,j)=Bint(j)/t;
+            end
+        end
+  
+        
+    end       
+
+end
+
