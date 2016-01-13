@@ -1,4 +1,4 @@
-% getQdot returns the matrix right hand side of the equation dQ/dt=Q*S
+% stekfun returns
 %
 % Inputs: T, X, Ttransient, prob, work, d , p
 % T - vector of times
@@ -12,7 +12,8 @@
 %
 % Outputs: stek
 % stek - p x 1 vector of Steklov averages
-function stek =stekfun(T,X,prob,work,H,d,p)
+% Tstek - vector of times steps for the Steklov averages
+function [Tstek,stek] =stekfun(T,X,prob,work,H,d,p)
     Tn=length(T); 
     u=zeros(d,1);
     m =1; counter = 1;
@@ -50,8 +51,8 @@ function stek =stekfun(T,X,prob,work,H,d,p)
         end
         for j=1:p
             stek(counter,j)=Bint(j)/H;
+            Tstek(counter,j)=tnew;
         end
         counter=counter+1;
     end
 end
-
