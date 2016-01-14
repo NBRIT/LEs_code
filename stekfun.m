@@ -9,22 +9,21 @@
 % H - the window length of the Steklov averages
 % d - The dimension of the problem
 % p - the number of LEs being approximated
+% increment - The number of time steps in T which are between Steklov
+% average calculations
 %
 % Outputs: stek
 % stek - p x 1 vector of Steklov averages
-% Tstek - vector of times steps for the Steklov averages
-function [Tstek,stek] =stekfun(T,X,prob,work,H,d,p)
-    Tn=length(T); 
+function [Tstek,stek] =stekfun(T,X,prob,work,H,d,p,increment) 
     u=zeros(d,1);
-    m =1; counter = 1;
-    while m < Tn-1
-        mprev=m;
-        tprev=T(m); tnew = T(m+1);
-        while (tnew-tprev < H) && (m < Tn-1)
-            m = m+1;
-            tnew=T(m);
-        end
-        for n=mprev:m        
+    mfin=find(T < T(end)-H,1,'last');
+    stek=zeros(mfin,p);
+    Tstek=zeros(mfin,1);
+    for counter=1:mfin
+        tprev=T(counter);
+        m=find(T < tprev+H,1,'last');
+        tnew=T(m);
+        for n=counter:increment:m    
             Bint=zeros(p,1);
             t=T(n); h=T(n+1)-T(n);
             u(1:d)=X(n,1:d);
@@ -51,8 +50,7 @@ function [Tstek,stek] =stekfun(T,X,prob,work,H,d,p)
         end
         for j=1:p
             stek(counter,j)=Bint(j)/H;
-            Tstek(counter,j)=tnew;
+            Tstek(counter,j)=tprev;
         end
-        counter=counter+1;
     end
 end
