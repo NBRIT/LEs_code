@@ -17,18 +17,17 @@
 function [Tstek,stek] =stekfun(T,X,prob,work,H,d,p,increment) 
     u=zeros(d,1);
     mfin=find(T < T(end)-H,1,'last');
-    stek=zeros(mfin,p);
-    Tstek=zeros(mfin,1);
-    for counter=1:mfin
+    c=1;
+    for counter=1:increment:mfin
         tprev=T(counter);
         m=find(T < tprev+H,1,'last');
         tnew=T(m);
-        for n=counter:increment:m    
-            Bint=zeros(p,1);
+        Bint=zeros(p,1);
+        for n=counter:m    
             t=T(n); h=T(n+1)-T(n);
             u(1:d)=X(n,1:d);
             up=frhs(t,u,d,prob,work);
-            A=getA(t,u,up,d,prob,work) ;
+            A=getA(t,u,up,d,prob,work);
             Q=reshape(X(n,d+1:d+d*p),d,p);
             QtAQ=Q'*A*Q;
             S=zeros(p,p);
@@ -48,9 +47,10 @@ function [Tstek,stek] =stekfun(T,X,prob,work,H,d,p,increment)
                 Bint(j)=Bint(j)+h*B(j,j);            
             end
         end
+        Tstek(c)=tprev;
         for j=1:p
-            stek(counter,j)=Bint(j)/H;
-            Tstek(counter,j)=tprev;
+            stek(c,j)=Bint(j)/H;
         end
+        c=c+1;
     end
 end
