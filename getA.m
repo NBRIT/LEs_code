@@ -75,5 +75,15 @@ function A=getA(t,u,up,d,prob,work)
         A=J;
         f(1)= (1/epsilon)*(u(2)*r*exp(alpha*u(1))-(lambda/BigA)*(u(1)-b));
         f(2)=CapitalPi-u(2)*r*exp(alpha*u(1));
+    elseif prob==7
+         del=work(1);
+         b0=1e-6;
+         b1=(1-b0)/b0;
+         a=work(2);
+         b=exp(a*t)/(b1+exp(a*t));      
+         A(1,1)=-((u(1)-b)*(u(1)-b-work(3)*del)+(u(1)-b)*(u(1)-b+del)+(u(1)-b-work(3)*del)*(u(1)-b+del));
+         A(2,1)= u(1);
+         A(1,2)=0;
+         A(2,2)=-1;
     end
 end
